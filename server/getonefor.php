@@ -27,12 +27,12 @@ class index_list
         //设置server运行时的各项参数
 		
 
-/*         $ws_server->set(array(
+        $ws_server->set(array(
 		'worker_num' => 4,
         //'heartbeat_check_interval' => 10,
         //'heartbeat_idle_time' => 15,
         //'daemonize' => true, //是否作为守护进程
-        ));  */
+        )); 
         //监听WebSocket连接打开事件
         $ws_server->on('open', function ($ws, $request) {
 
@@ -46,31 +46,10 @@ class index_list
             //var_dump($frame);
             $user = json_decode($frame->data);
 			$this->redis->set($frame->flags.'api_name',$user->api_name);
-			if(isset($user->fs))
-			$this->redis->set($frame->flags.'fs',$user->fs);
 			$user->field = $user->field??'id';
 			$user->sortd = $user->sortd??'asc';
             $result = $db->__call('user_token', [$user->token]);
 
-/*			$this->timer[$frame->fd.'tokenTest'] = \Swoole\Timer::tick(5000, function () use ($ws,$frame, $user,$db) {
-				$result = $db->__call('user_token', [$user->token]);
-				if(!$result){
-						\Swoole\Timer::clear($this->timer[$frame->fd.'tokenTest']);
-						if(isset($this->timer[$frame->fd.'get_one_for_list']) && $user->api_name = 'get_one_for_list'){
-						\Swoole\Timer::clear($this->timer[$frame->fd.'get_one_for_list']);
-						}
-						if(isset($this->timer[$frame->fd.'userorderlist']) && $user->api_name = 'userorderlist'){
-						\Swoole\Timer::clear($this->timer[$frame->fd.'userorderlist']);
-						}
-						if(isset($this->timer[$frame->fd.'getuserfor']) && $user->api_name = 'getuserfor'){
-						\Swoole\Timer::clear($this->timer[$frame->fd.'getuserfor']);
-						}
-						if(isset($this->timer[$frame->fd.'user_info']) && $user->api_name = 'user_info'){
-						\Swoole\Timer::clear($this->timer[$frame->fd.'user_info']);
-						}
-				$ws->push($frame->fd,json_encode($this->status['error2'],JSON_UNESCAPED_UNICODE));
-				}
-					});*/
             if (!$result) {
                 $ws->push($this->redis->get($frame->flags),json_encode($this->status['error2'],JSON_UNESCAPED_UNICODE));
             }
@@ -84,7 +63,7 @@ class index_list
                         $data = $this->getUserOrderList($db,  $this->redis->get($frame->flags.'user'),$user->field,$user->sortd);
                         break;
                     case 'get_one_for_list':
-                        $data = $this->getOneForlist($db, $this->redis->get($frame->flags.'fs'));
+                        $data = $this->getOneForlist($db, $user->fs);
                         $data=empty($data)?[]:$data[0];
                         break;
 					case 'user_info':
@@ -101,7 +80,8 @@ class index_list
 				}
 				if($this->redis->get($frame->flags.'api_name')=='get_one_for_list'){
 					$this->timer[$frame->flags.'get_one_for_list'] = \Swoole\Timer::tick(1000, function () use ($ws, $frame, $user,$result,$db) {
-					$data = $this->getOneForlist($db, $this->redis->get($frame->flags.'fs'));
+					$user->fs=$user->fs??'';
+					$data = $this->getOneForlist($db, $user->fs);
 					$data=empty($data)?[]:$data[0];
 					$this->pushMessage($ws, $this->redis->get($frame->flags),$data,'get_one_for_list');
 					});
@@ -112,7 +92,6 @@ class index_list
 				if($this->redis->get($frame->flags.'api_name')=='userorderlist'){
 					$this->timer[$frame->flags.'userorderlist'] = \Swoole\Timer::tick(1000, function () use ($ws, $frame, $user,$result,$db) {
 					$data = $this->getUserOrderList($db,  $this->redis->get($frame->flags.'user'),$user->field,$user->sortd);
-					
 					$this->pushMessage($ws, $this->redis->get($frame->flags),$data,'userorderlist');
 					});
 				}
@@ -129,6 +108,7 @@ class index_list
 					\Swoole\Timer::clear($this->timer[$frame->flags.'user_info']);
 				}
 				if($this->redis->get($frame->flags.'api_name')=='user_info'){
+					echo 'me';
 					$this->timer[$frame->flags.'user_info'] = \Swoole\Timer::tick(1000, function () use ($ws, $frame, $user,$result,$db) {
 					$data = $this->getUserInfo($db,  $this->redis->get($frame->flags.'user'));
 					$data=empty($data)?[]:$data[0];

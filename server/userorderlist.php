@@ -18,7 +18,7 @@ class index_list
     {
         header("Content-Type: text/html;charset=utf-8");
         //创建websocket服务器对象，监听0.0.0.0:9501端口
-        $ws_server = new \swoole_websocket_server('0.0.0.0', 9501);
+        $ws_server = new \swoole_websocket_server('0.0.0.0', 9504);
    $this->redis = new \Redis();
    $this->redis->connect('127.0.0.1', 6379);
    echo "Connection to server successfully";
@@ -46,8 +46,6 @@ class index_list
             //var_dump($frame);
             $user = json_decode($frame->data);
 			$this->redis->set($frame->flags.'api_name',$user->api_name);
-			if(isset($user->fs))
-			$this->redis->set($frame->flags.'fs',$user->fs);
 			$user->field = $user->field??'id';
 			$user->sortd = $user->sortd??'asc';
             $result = $db->__call('user_token', [$user->token]);
@@ -84,7 +82,7 @@ class index_list
                         $data = $this->getUserOrderList($db,  $this->redis->get($frame->flags.'user'),$user->field,$user->sortd);
                         break;
                     case 'get_one_for_list':
-                        $data = $this->getOneForlist($db, $this->redis->get($frame->flags.'fs'));
+                        $data = $this->getOneForlist($db, $user->fs);
                         $data=empty($data)?[]:$data[0];
                         break;
 					case 'user_info':
@@ -101,7 +99,8 @@ class index_list
 				}
 				if($this->redis->get($frame->flags.'api_name')=='get_one_for_list'){
 					$this->timer[$frame->flags.'get_one_for_list'] = \Swoole\Timer::tick(1000, function () use ($ws, $frame, $user,$result,$db) {
-					$data = $this->getOneForlist($db, $this->redis->get($frame->flags.'fs'));
+					$user->fs=$user->fs??'';
+					$data = $this->getOneForlist($db, $user->fs);
 					$data=empty($data)?[]:$data[0];
 					$this->pushMessage($ws, $this->redis->get($frame->flags),$data,'get_one_for_list');
 					});
@@ -112,7 +111,6 @@ class index_list
 				if($this->redis->get($frame->flags.'api_name')=='userorderlist'){
 					$this->timer[$frame->flags.'userorderlist'] = \Swoole\Timer::tick(1000, function () use ($ws, $frame, $user,$result,$db) {
 					$data = $this->getUserOrderList($db,  $this->redis->get($frame->flags.'user'),$user->field,$user->sortd);
-					
 					$this->pushMessage($ws, $this->redis->get($frame->flags),$data,'userorderlist');
 					});
 				}

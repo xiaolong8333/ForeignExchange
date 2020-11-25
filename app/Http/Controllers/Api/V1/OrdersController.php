@@ -213,6 +213,9 @@ class OrdersController extends Controller
             if(!$toPriceList)
                 return $this->response->error('此币种不能交易', 507);
         }
+        $request->trouble = $request->trouble??$order->trouble;
+        if($request->trouble>$order->trouble)
+            return $this->response->error('手数不足', 509);
         //获取配置
         $config = Configs::get();
         $configs = [];
@@ -232,14 +235,53 @@ class OrdersController extends Controller
 
     public function closeAction($profit,$order,$market,$request)
     {
+        $trouble = $request->trouble;
+        $fees = $order->fees;
+
+        if($order->trouble!=$trouble) {
+            $proportion = $request->trouble / $order->trouble;
+            $profit = sprintf("%.5f", $profit*$proportion);
+            $fees  = sprintf("%.5f", $order->fees*$proportion);
+        }
+
         //卖出总价
         try {
             //开启默认数据库的事务
             DB::beginTransaction();
             $order ->close_price = $order->type=='buy'?$market->B1:$market->S1;
+            $ordercreate_total_price =$order->create_total_price;
             $order ->close_total_price = sprintf("%.5f",$order->create_total_price+$profit+$order->fees);
             $order ->status = 2;
-            $order->profit = $profit;
+            $total_price = $order->create_total_price;
+            if($order->trouble!=$trouble){
+                $order ->close_total_price=0;
+                $order->trouble = $order->trouble-$trouble;
+                $order ->status = 1;
+                $order->create_total_price = sprintf("%.5f",$order->create_total_price*(1-$proportion));
+                $order->profit =  $order->profit-$profit;
+                $order->fees =  sprintf("%.2f", $order->fees-$fees);
+                $newOrder = new Order();
+                $newOrder->trouble = $trouble;
+                $newOrder->create_price = $order->create_price;
+                $newOrder ->close_price = $order->type=='buy'?$market->B1:$market->S1;
+                $newOrder->trade_no = $this->createNumber();
+                $newOrder->user_id = $order->user_id;
+                $newOrder->profit =  $profit;
+                //$order ->new_value = $nowPrice;
+                $newOrder->FS = $order ->FS;
+                $newOrder->create_price = $order ->create_price;
+                $newOrder->create_total_price = sprintf("%.5f",$ordercreate_total_price*$proportion);
+                $newOrder->close_total_price = sprintf("%.5f",$ordercreate_total_price+$profit);
+                $newOrder->fees = $fees;
+                $newOrder->type = $order->type;
+                $newOrder->create_type = $order->create_type;
+                $newOrder->status = 2;
+                $newOrder->cancel_time =0;
+                $newOrder->save();
+                $total_price = $newOrder->create_total_price;
+
+            }
+
                 $moneyData = [
                     'type'=>0,
                     'user_id'=>$request->user()->id,
@@ -249,16 +291,16 @@ class OrdersController extends Controller
                     'last_balance'=>sprintf("%.5f",$request->user()->last_balance+$profit),
                     'pre_balance'=>$request->user()->balance,
                     'pre_advance'=>$request->user()->advance,
-                    'balance'=>sprintf("%.5f",$request->user()->balance+$order->create_total_price+$profit),
-                    'advance'=>sprintf("%.5f",$request->user()->advance-$order->create_total_price),
-                    'fees' =>sprintf("%.5f",$order->fees),
-                    'money'=>sprintf("%.5f",$order->create_total_price+$profit),
+                    'balance'=>sprintf("%.5f",$request->user()->balance+$total_price+$profit),
+                    'advance'=>sprintf("%.5f",$request->user()->advance-$total_price),
+                    'fees' =>sprintf("%.5f",$fees),
+                    'money'=>sprintf("%.5f",$total_price+$profit),
                 ];
                 User::where('id', $request->user()->id)->update(
                     [
                         'last_balance'=>sprintf("%.5f",$request->user()->last_balance+$profit),
-                        'advance'=> sprintf("%.5f",$request->user()->advance-$order->create_total_price),
-                        'balance' => sprintf("%.5f",$request->user()->balance+$order->create_total_price+$profit),
+                        'advance'=> sprintf("%.5f",$request->user()->advance-$total_price),
+                        'balance' => sprintf("%.5f",$request->user()->balance+$total_price+$profit),
                     ]
                 );
             $moneyRecord = new MoneyRecord();
@@ -267,6 +309,8 @@ class OrdersController extends Controller
             if (true) {
                 //一起提交
                 DB::commit();
+                if($order->trouble!=$trouble)
+                    return $newOrder;
                 return $order;
             } else {
                 //一起回滚

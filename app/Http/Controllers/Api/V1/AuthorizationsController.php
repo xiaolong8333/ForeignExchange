@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Auth\AuthenticationException;
 use App\Models\User;
 use App\Models\UserOperationLog;
+use App\Models\Configs;
 use Illuminate\Http\Request;
 use Dingo\Api\Routing\Helpers;
 
@@ -16,6 +17,11 @@ class AuthorizationsController extends Controller
     public function login()
     {
         return $this->response->error('未登录', 500);
+    }
+    public function versionNumber()
+    {
+        $number = Configs::where(['name'=>'versionnumber'])->first()->value;
+        return $this->response->array(['number'=>$number]);
     }
     public function store(AuthorizationRequest $request)
     {

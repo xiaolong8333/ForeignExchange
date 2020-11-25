@@ -34,6 +34,8 @@ $api->group([
     'namespace' => 'App\Http\Controllers\Api\V1',
     'middleware' => ['bindings', 'throttle:' . config('api.rate_limits.access')]], function ($api) {
     // 游客可以访问的接口
+    //检测版本号
+    $api->get('/versionnumber', 'AuthorizationsController@versionNumber')->name('versionNumber');
     $api->post('authorizations', 'AuthorizationsController@store')
         ->name('api.socials.authorizations.store');
     $api->get('/login', 'AuthorizationsController@login')->name('login');

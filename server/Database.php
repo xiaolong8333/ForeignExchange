@@ -37,6 +37,7 @@ class Database
      */
     public function querySql(string $sql)
     {
+
         $result = $this->mysqli->query($sql);
         $data = [];
         if (!$result) {

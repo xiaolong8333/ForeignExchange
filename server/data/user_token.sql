@@ -1,3 +1,7 @@
+truncate teable 
+
+
+
 drop procedure if exists user_token;
 delimiter $$
 create procedure user_token( _remember_token varchar(1000)) 
@@ -77,10 +81,11 @@ a.phone,
 a.last_balance,
 (a.balance+IFNULL(sum(b.profit),0)) as balance,
 IFNULL(sum(b.profit),0) as profit,
+if(advance=0,0,((a.balance+IFNULL(sum(b.profit),0))/advance)*100) as advancebl,
 a.advance,
 a.frozen_balance 
 from users a 
-left join orders b on a.id = b.user_id && (b.status=2 || b.status=1) where a.id =_user_id;
+left join orders b on a.id = b.user_id && (b.status=0 || b.status=1) where a.id =_user_id;
 end
 $$
 delimiter ;
@@ -88,9 +93,9 @@ delimiter ;
 
 drop procedure if exists get_one_for_list;
 delimiter $$
-create procedure get_one_for_list(_FS char(50))
+create procedure get_one_for_list(_fs char(50))
 BEGIN
-select * from foreign_exchange_lists where FS=_FS;
+select * from foreign_exchange_lists where FS=_fs;
 end 
 $$
 delimiter ;

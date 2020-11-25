@@ -27,20 +27,12 @@ var token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xOTIuMTY4
 			
 			//field 订单 id ,时间 created_at,交易品种  FS ， 利润 profit
 			//sortd 排序  正排序  asc  逆排序 desc
-			var data =  '{"FS":"EURUSD","api_name":"user_info","field":"created_at","sortd":"asc","token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xOTIuMTY4LjAuMTUwOjgwMDVcL1wvYXBpXC9hdXRob3JpemF0aW9ucyIsImlhdCI6MTYwNDU0MjYwMCwiZXhwIjoxNjA4MTQyNjAwLCJuYmYiOjE2MDQ1NDI2MDAsImp0aSI6Ik1XREpCc2h5dks1eTllTEIiLCJzdWIiOjMsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.112CN5qsr4j90X3TQZf-M-rtZtKifYbwTH3WyrPfgNM"}' ;
+			var data =  '{"fs":"EURUSD","api_name":"userorderlist","field":"FS","sortd":"asc","token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xOTIuMTY4LjAuMTUwOjgwMDVcL1wvYXBpXC9hdXRob3JpemF0aW9ucyIsImlhdCI6MTYwNTg2NDIwNSwiZXhwIjoxNjA5NDY0MjA1LCJuYmYiOjE2MDU4NjQyMDUsImp0aSI6Inh1dzNMM0lTU1I0ckVVMDQiLCJzdWIiOjMsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.daWLURe52FO6Qv3EudgNFLRi3WWYpPXn5_bQ7XZaKcs"}' ;
 		//var data = {'id':2,'token':'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xOTIuMTY4LjAuMTUwOjgwMDVcL2FwaVwvYXV0aG9yaXphdGlvbnMiLCJpYXQiOjE1OTg4NTE1MzMsImV4cCI6MTYwMjQ1MTUzMywibmJmIjoxNTk4ODUxNTMzLCJqdGkiOiJFY2RUbVdQM3g1YjJyTks5Iiwic3ViIjoyLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.eb5iKXjNEZv-Il2iIo7ndLo2egiZhDnLfLX7okLPrNk'};
-
+ console.log(data)
 	  webSocket.send(data);
-	  			  console.log('发送消息')
-  	  			var data1 =  '{"FS":"EURUSD","api_name":"userorderlist","field":"created_at","sortd":"asc","token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xOTIuMTY4LjAuMTUwOjgwMDVcL1wvYXBpXC9hdXRob3JpemF0aW9ucyIsImlhdCI6MTYwNDU0MjYwMCwiZXhwIjoxNjA4MTQyNjAwLCJuYmYiOjE2MDQ1NDI2MDAsImp0aSI6Ik1XREpCc2h5dks1eTllTEIiLCJzdWIiOjMsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.112CN5qsr4j90X3TQZf-M-rtZtKifYbwTH3WyrPfgNM"}' ;
-webSocket.send(data1);
 	  })
-	  	  $("#sendMessage1").click(function(){
-			  console.log('发送消息')
-  	  			var data1 =  '{"FS":"EURUSD","api_name":"userorderlist","field":"created_at","sortd":"asc","token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xOTIuMTY4LjAuMTUwOjgwMDVcL2FwaVwvYXV0aG9yaXphdGlvbnMiLCJpYXQiOjE2MDQ1MzkyNzUsImV4cCI6MTYwODEzOTI3NSwibmJmIjoxNjA0NTM5Mjc1LCJqdGkiOiJsbmp0TEpSR0ZKd3R2dVByIiwic3ViIjozLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.bs4uZpN_0evohq23FHVR09RRXk_2q88LaCC5q0Ibe8w"}' ;
-		
-	  webSocket.send(data1);
-	  })
+
 });
 
 </script>
@@ -53,7 +45,7 @@ webSocket.send(data1);
 <div style="height:40px">
 <input type="text" id="message" style="margin-left:10px;height:25px;width:450px;">
 <button id = 'sendMessage'  style="height:28px;width:75px;">发送</button>
-<button id = 'sendMessage1'  style="height:28px;width:75px;">发送</button>
+
 </div>
 </div>
 </body>
